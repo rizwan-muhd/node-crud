@@ -8,11 +8,13 @@ const {
   getMyPost,
   getAllPost,
   commentMyPost,
+  addUser,
 } = require("../controllers/Post");
 
 const router = express();
 //post
 router.post("/add-post", upload.single("image"), addPost);
+router.post("/add-user", addUser);
 
 //get
 router.get("/my-post", getMyPost);

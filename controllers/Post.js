@@ -17,6 +17,32 @@ const storage = multer.diskStorage({
 
 exports.upload = multer({ storage: storage });
 
+exports.addUser = async (req, res) => {
+  try {
+    const user = await userSchema.findOne({ email: req.body.email });
+
+    if (user) {
+      return res
+        .status(409)
+        .json({ message: "user with given email already exits" });
+    }
+    console.log("succes");
+    const newUser = await new userSchema({
+      ...req.body,
+    }).save();
+
+    res.status(200).send({
+      success: true,
+      newUser,
+    });
+  } catch (error) {
+    res.status(200).json({
+      success: false,
+      message: error,
+    });
+  }
+};
+
 exports.addPost = async (req, res) => {
   try {
     console.log("enter here");
@@ -128,15 +154,14 @@ exports.deletePost = async (req, res) => {
 exports.likeMyPost = async (req, res) => {
   try {
     const id = req.query.id;
-    const userId = req.user.id;
+    const userId = req.query.user;
 
     // Check if the user has already liked the post
-    const user = await userSchema.findById(userId);
+    const post = await postSchema.findById(id);
 
-    if (!user.likes.includes(id)) {
-      // If the post is not liked, add the like
-      await userSchema.findByIdAndUpdate(userId, {
-        $push: { likes: id },
+    if (!post.likes.includes(userId)) {
+      await postSchema.findByIdAndUpdate(id, {
+        $push: { likes: userId },
       });
 
       res.status(200).json({
@@ -145,8 +170,8 @@ exports.likeMyPost = async (req, res) => {
       });
     } else {
       // If the post is already liked, remove the like (unlike)
-      await userSchema.findByIdAndUpdate(userId, {
-        $pull: { likes: id },
+      await postSchema.findByIdAndUpdate(id, {
+        $pull: { likes: userId },
       });
 
       res.status(200).json({
@@ -163,10 +188,10 @@ exports.likeMyPost = async (req, res) => {
   }
 };
 
-exports.commentOnPost = async (req, res) => {
+exports.commentMyPost = async (req, res) => {
   try {
     const postId = req.query.id;
-    const userId = req.user.id;
+    const userId = req.query.user;
     const { commentText } = req.body;
 
     // Find the post

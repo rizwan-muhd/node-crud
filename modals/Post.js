@@ -23,11 +23,7 @@ const postSchema = new mongoose.Schema({
       type: String,
     },
   ],
-  comments: [
-    {
-      type: String,
-    },
-  ],
+  comments: [],
 });
 
 module.exports = mongoose.model("posts", postSchema);
